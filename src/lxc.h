@@ -16,17 +16,17 @@ class Container : public node::ObjectWrap {
  
     Container();
     ~Container();
-    static Handle<Value> New(const Arguments& args);
-    static Handle<Value> Defined(const Arguments& args);
-    static Handle<Value> State(const Arguments& args);
-    static Handle<Value> Running(const Arguments& args);
-    static Handle<Value> Freeze(const Arguments& args);
-    static Handle<Value> UnFreeze(const Arguments& args);
-    static Handle<Value> InitPid(const Arguments& args);
-    static Handle<Value> WantDaemonize(const Arguments& args);
-    static Handle<Value> WantCloseAllFds(const Arguments& args);
-    static Handle<Value> Create(const Arguments& args);
-    static Handle<Value> Start(const Arguments& args);
+    static NAN_METHOD(New);
+    static NAN_METHOD(Defined);
+    static NAN_METHOD(State);
+    static NAN_METHOD(Running);
+    static NAN_METHOD(Freeze);
+    static NAN_METHOD(UnFreeze);
+    static NAN_METHOD(InitPid);
+    static NAN_METHOD(WantDaemonize);
+    static NAN_METHOD(WantCloseAllFds);
+    static NAN_METHOD(Create);
+    static NAN_METHOD(Start);
     //static Handle New(const Arguments& args);
   public:
     static void Init(Handle<Object> target);
