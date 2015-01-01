@@ -6,6 +6,9 @@ extern "C" {
 //#include <stdbool.h>
 //
 #include <lxc/lxccontainer.h>
+#include <lxc/attach_options.h>
+#include <lxc/version.h>
+
 //#include <lxc/attach_options.h>
 }
 
@@ -27,146 +30,57 @@ class Container : public node::ObjectWrap {
     static NAN_METHOD(WantCloseAllFds);
     static NAN_METHOD(Create);
     static NAN_METHOD(Start);
-    //static Handle New(const Arguments& args);
+    static NAN_METHOD(Stop);
+    static NAN_METHOD(Reboot);
+    static NAN_METHOD(Shutdown);
+    static NAN_METHOD(ConfigFileName);
+    static NAN_METHOD(Destroy);
+    static NAN_METHOD(Wait);
+    static NAN_METHOD(GetConfigItem);
+    static NAN_METHOD(SetConfigItem);
+    static NAN_METHOD(ClearConfig);
+    static NAN_METHOD(ClearConfigItem);
+    static NAN_METHOD(GetRunningConfigItem);
+    static NAN_METHOD(GetKeys);
+    static NAN_METHOD(GetCGroupItem);
+    static NAN_METHOD(SetCGroupItem);
+    static NAN_METHOD(GetConfigPath);
+    static NAN_METHOD(SetConfigPath);
+    static NAN_METHOD(LoadConfig);
+    static NAN_METHOD(SaveConfig);
+ 
   public:
     static void Init(Handle<Object> target);
 };
 
-bool lxc_create(struct lxc_container *c, const char *t, const char *bdevtype, int flags, char * const argv[]) {
-	return c->create(c, t, bdevtype, NULL, !!(flags & LXC_CREATE_QUIET), argv);
+bool lxc_clone(struct lxc_container *c, const char *newname, int flags, const char *bdevtype) {
+	return c->clone(c, newname, NULL, flags, bdevtype, NULL, 0, NULL) != NULL;
 }
 
-bool lxc_start(struct lxc_container *c, int useinit, char * const argv[]) {
-	return c->start(c, useinit, argv);
+int lxc_console_getfd(struct lxc_container *c, int ttynum) {
+	int masterfd;
+
+	if (c->console_getfd(c, &ttynum, &masterfd) < 0) {
+		return -1;
+	}
+	return masterfd;
 }
 
-//bool lxc_stop(struct lxc_container *c) {
-//	return c->stop(c);
-//}
+bool lxc_console(struct lxc_container *c, int ttynum, int stdinfd, int stdoutfd, int stderrfd, int escape) {
 
-//bool lxc_reboot(struct lxc_container *c) {
-//	return c->reboot(c);
-//}
+	if (c->console(c, ttynum, stdinfd, stdoutfd, stderrfd, escape) == 0) {
+		return true;
+	}
+	return false;
+}
 
-//bool lxc_shutdown(struct lxc_container *c, int timeout) {
-//	return c->shutdown(c, timeout);
-//}
+char** get_interfaces(struct lxc_container *c) {
+	return c->get_interfaces(c);
+}
 
-//char* lxc_config_file_name(struct lxc_container *c) {
-//	return c->config_file_name(c);
-//}
-
-//bool lxc_destroy(struct lxc_container *c) {
-//	return c->destroy(c);
-//}
-
-//bool lxc_wait(struct lxc_container *c, const char *state, int timeout) {
-//	return c->wait(c, state, timeout);
-//}
-
-//char* lxc_get_config_item(struct lxc_container *c, const char *key) {
-//	int len = c->get_config_item(c, key, NULL, 0);
-//	if (len <= 0) {
-//		return NULL;
-//	}
-
-//	char* value = (char*)malloc(sizeof(char)*len + 1);
-//	if (c->get_config_item(c, key, value, len + 1) != len) {
-//		return NULL;
-//	}
-//	return value;
-//}
-
-//bool lxc_set_config_item(struct lxc_container *c, const char *key, const char *value) {
-//	return c->set_config_item(c, key, value);
-//}
-
-//void lxc_clear_config(struct lxc_container *c) {
-//    c->clear_config(c);
-//}
-
-//bool lxc_clear_config_item(struct lxc_container *c, const char *key) {
-//	return c->clear_config_item(c, key);
-//}
-
-//char* lxc_get_running_config_item(struct lxc_container *c, const char *key) {
-//    return c->get_running_config_item(c, key);
-//}
-
-//char* lxc_get_keys(struct lxc_container *c, const char *key) {
-//	int len = c->get_keys(c, key, NULL, 0);
-//	if (len <= 0) {
-//		return NULL;
-//	}
-
-//	char* value = (char*)malloc(sizeof(char)*len + 1);
-//	if (c->get_keys(c, key, value, len + 1) != len) {
-//		return NULL;
-//	}
-//	return value;
-//}
-
-//char* lxc_get_cgroup_item(struct lxc_container *c, const char *key) {
-//	int len = c->get_cgroup_item(c, key, NULL, 0);
-//	if (len <= 0) {
-//		return NULL;
-//	}
-
-//	char* value = (char*)malloc(sizeof(char)*len + 1);
-//	if (c->get_cgroup_item(c, key, value, len + 1) != len) {
-//		return NULL;
-//	}
-//	return value;
-//}
-
-//bool lxc_set_cgroup_item(struct lxc_container *c, const char *key, const char *value) {
-//	return c->set_cgroup_item(c, key, value);
-//}
-
-//const char* lxc_get_config_path(struct lxc_container *c) {
-//	return c->get_config_path(c);
-//}
-
-//bool lxc_set_config_path(struct lxc_container *c, const char *path) {
-//	return c->set_config_path(c, path);
-//}
-
-//bool lxc_load_config(struct lxc_container *c, const char *alt_file) {
-//	return c->load_config(c, alt_file);
-//}
-
-//bool lxc_save_config(struct lxc_container *c, const char *alt_file) {
-//	return c->save_config(c, alt_file);
-//}
-
-//bool lxc_clone(struct lxc_container *c, const char *newname, int flags, const char *bdevtype) {
-//	return c->clone(c, newname, NULL, flags, bdevtype, NULL, 0, NULL) != NULL;
-//}
-
-//int lxc_console_getfd(struct lxc_container *c, int ttynum) {
-//	int masterfd;
-
-//	if (c->console_getfd(c, &ttynum, &masterfd) < 0) {
-//		return -1;
-//	}
-//	return masterfd;
-//}
-
-//bool lxc_console(struct lxc_container *c, int ttynum, int stdinfd, int stdoutfd, int stderrfd, int escape) {
-
-//	if (c->console(c, ttynum, stdinfd, stdoutfd, stderrfd, escape) == 0) {
-//		return true;
-//	}
-//	return false;
-//}
-
-//char** get_interfaces(struct lxc_container *c) {
-//	return c->get_interfaces(c);
-//}
-
-//char** get_ips(struct lxc_container *c, const char *interface, const char *family, int scope) {
-//	return c->get_ips(c, interface, family, scope);
-//}
+char** get_ips(struct lxc_container *c, const char *interface, const char *family, int scope) {
+	return c->get_ips(c, interface, family, scope);
+}
 
 //int lxc_attach(struct lxc_container *c, bool clear_env) {
 //	int ret;
