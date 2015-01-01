@@ -12,6 +12,8 @@ extern "C" {
 //#include <lxc/attach_options.h>
 }
 
+# define Con() (ObjectWrap::Unwrap<Container>(args.This()))->con_
+
 class Container : public node::ObjectWrap {
   private:
     struct lxc_container *con_;
@@ -48,39 +50,23 @@ class Container : public node::ObjectWrap {
     static NAN_METHOD(SetConfigPath);
     static NAN_METHOD(LoadConfig);
     static NAN_METHOD(SaveConfig);
+    static NAN_METHOD(Clone);
+    static NAN_METHOD(ConsoleGetFd);
+    static NAN_METHOD(Console);
+    static NAN_METHOD(GetInterfaces);
+    static NAN_METHOD(GetIps);
+    static NAN_METHOD(MayControl);
+    static NAN_METHOD(Snapshot);
+    static NAN_METHOD(SnapshotList);
+    static NAN_METHOD(SnapshotRestore);
+    static NAN_METHOD(SnapshotDestroy);
+    static NAN_METHOD(AddDeviceNode);
+    static NAN_METHOD(RemoveDeviceNode);
+    static NAN_METHOD(Rename);
  
   public:
-    static void Init(Handle<Object> target);
+    static void Init(Handle<Object> target, Handle<Object> module);
 };
-
-bool lxc_clone(struct lxc_container *c, const char *newname, int flags, const char *bdevtype) {
-	return c->clone(c, newname, NULL, flags, bdevtype, NULL, 0, NULL) != NULL;
-}
-
-int lxc_console_getfd(struct lxc_container *c, int ttynum) {
-	int masterfd;
-
-	if (c->console_getfd(c, &ttynum, &masterfd) < 0) {
-		return -1;
-	}
-	return masterfd;
-}
-
-bool lxc_console(struct lxc_container *c, int ttynum, int stdinfd, int stdoutfd, int stderrfd, int escape) {
-
-	if (c->console(c, ttynum, stdinfd, stdoutfd, stderrfd, escape) == 0) {
-		return true;
-	}
-	return false;
-}
-
-char** get_interfaces(struct lxc_container *c) {
-	return c->get_interfaces(c);
-}
-
-char** get_ips(struct lxc_container *c, const char *interface, const char *family, int scope) {
-	return c->get_ips(c, interface, family, scope);
-}
 
 //int lxc_attach(struct lxc_container *c, bool clear_env) {
 //	int ret;
@@ -148,39 +134,6 @@ int lxc_attach_run_wait(struct lxc_container *c, bool clear_env, int stdinfd, in
 		return -1;
 	return ret;
 }
-
-bool lxc_may_control(struct lxc_container *c) {
-	return c->may_control(c);
-}
-
-int lxc_snapshot(struct lxc_container *c) {
-	return c->snapshot(c, NULL);
-}
-
-int lxc_snapshot_list(struct lxc_container *c, struct lxc_snapshot **ret) {
-	return c->snapshot_list(c, ret);
-}
-
-bool lxc_snapshot_restore(struct lxc_container *c, const char *snapname, const char *newname) {
-	return c->snapshot_restore(c, snapname, newname);
-}
-
-bool lxc_snapshot_destroy(struct lxc_container *c, const char *snapname) {
-	return c->snapshot_destroy(c, snapname);
-}
-
-bool lxc_add_device_node(struct lxc_container *c, const char *src_path, const char *dest_path) {
-	return c->add_device_node(c, src_path, dest_path);
-}
-
-bool lxc_remove_device_node(struct lxc_container *c, const char *src_path, const char *dest_path) {
-	return c->remove_device_node(c, src_path, dest_path);
-}
-
-bool lxc_rename(struct lxc_container *c, const char *newname) {
-	return c->rename(c, newname);
-}
-
 */
 
 

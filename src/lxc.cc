@@ -15,7 +15,7 @@ struct lxc_container Container::*con_;
 Container::Container() { }
 Container::~Container() { }
 
-void Container::Init(Handle<Object> target) {
+void Container::Init(Handle<Object> target, Handle<Object> module) {
   NanScope();
 
   Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
@@ -29,9 +29,43 @@ void Container::Init(Handle<Object> target) {
   NanSetPrototypeTemplate(tpl, "init_pid", NanNew<FunctionTemplate>(InitPid));
   NanSetPrototypeTemplate(tpl, "want_daemonize", NanNew<FunctionTemplate>(WantDaemonize));
   NanSetPrototypeTemplate(tpl, "want_close_all_fds", NanNew<FunctionTemplate>(WantCloseAllFds));
+  NanSetPrototypeTemplate(tpl, "create", NanNew<FunctionTemplate>(Create));
+  NanSetPrototypeTemplate(tpl, "start", NanNew<FunctionTemplate>(Start));
+  NanSetPrototypeTemplate(tpl, "stop", NanNew<FunctionTemplate>(Stop));
+  NanSetPrototypeTemplate(tpl, "reboot", NanNew<FunctionTemplate>(Reboot));
+  NanSetPrototypeTemplate(tpl, "shutdown", NanNew<FunctionTemplate>(Shutdown));
+  NanSetPrototypeTemplate(tpl, "config_file_name", NanNew<FunctionTemplate>(ConfigFileName));
+  NanSetPrototypeTemplate(tpl, "destroy", NanNew<FunctionTemplate>(Destroy));
+  NanSetPrototypeTemplate(tpl, "wait", NanNew<FunctionTemplate>(Wait));
+  NanSetPrototypeTemplate(tpl, "get_config_item", NanNew<FunctionTemplate>(GetConfigItem));
+  NanSetPrototypeTemplate(tpl, "set_config_item", NanNew<FunctionTemplate>(SetConfigItem));
+  NanSetPrototypeTemplate(tpl, "clear_config", NanNew<FunctionTemplate>(ClearConfig));
+  NanSetPrototypeTemplate(tpl, "clear_config_item", NanNew<FunctionTemplate>(ClearConfigItem));
+  NanSetPrototypeTemplate(tpl, "get_running_config_item", NanNew<FunctionTemplate>(GetRunningConfigItem));
+  NanSetPrototypeTemplate(tpl, "get_keys", NanNew<FunctionTemplate>(GetKeys));
+  NanSetPrototypeTemplate(tpl, "get_cgroup_item", NanNew<FunctionTemplate>(GetCGroupItem));
+  NanSetPrototypeTemplate(tpl, "set_cgroup_item", NanNew<FunctionTemplate>(SetCGroupItem));
+  NanSetPrototypeTemplate(tpl, "get_config_path", NanNew<FunctionTemplate>(GetConfigPath));
+  NanSetPrototypeTemplate(tpl, "set_config_path", NanNew<FunctionTemplate>(SetConfigPath));
+  NanSetPrototypeTemplate(tpl, "load_config", NanNew<FunctionTemplate>(LoadConfig));
+  NanSetPrototypeTemplate(tpl, "save_config", NanNew<FunctionTemplate>(SaveConfig));
+  NanSetPrototypeTemplate(tpl, "clone", NanNew<FunctionTemplate>(Clone));
+  NanSetPrototypeTemplate(tpl, "console_getfd", NanNew<FunctionTemplate>(ConsoleGetFd));
+  NanSetPrototypeTemplate(tpl, "console", NanNew<FunctionTemplate>(Console));
+  NanSetPrototypeTemplate(tpl, "get_interfaces", NanNew<FunctionTemplate>(GetInterfaces));
+  NanSetPrototypeTemplate(tpl, "get_ips", NanNew<FunctionTemplate>(GetIps));
+  NanSetPrototypeTemplate(tpl, "may_control", NanNew<FunctionTemplate>(MayControl));
+  NanSetPrototypeTemplate(tpl, "snapshot", NanNew<FunctionTemplate>(Snapshot));
+  NanSetPrototypeTemplate(tpl, "snapshot_list", NanNew<FunctionTemplate>(SnapshotList));
+  NanSetPrototypeTemplate(tpl, "snapshot_restore", NanNew<FunctionTemplate>(SnapshotRestore));
+  NanSetPrototypeTemplate(tpl, "snapshot_destroy", NanNew<FunctionTemplate>(SnapshotDestroy));
+  NanSetPrototypeTemplate(tpl, "add_device_node", NanNew<FunctionTemplate>(AddDeviceNode));
+  NanSetPrototypeTemplate(tpl, "remove_device_node", NanNew<FunctionTemplate>(RemoveDeviceNode));
+  NanSetPrototypeTemplate(tpl, "rename", NanNew<FunctionTemplate>(Rename));
 
   NanAssignPersistent(constructor, tpl->GetFunction());
-  target->Set(NanNew("Container"), tpl->GetFunction());
+  //target->Set(NanNew("Container"), tpl->GetFunction());
+  module->Set(NanNew("exports"), tpl->GetFunction());
 }
 
 NAN_METHOD(Container::New) {
@@ -306,5 +340,160 @@ NAN_METHOD(Container::SaveConfig) {
 
   return obj->con_->save_config(obj->con_, path) ? NanTrue() : NanFalse();
 }
+
+NAN_METHOD(Container::Clone) {
+  NanScope();
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  char * newname = **(new NanUtf8String(args[0].As<String>()));
+  Handle<Integer> flags = args[1].As<Integer>();
+  char * bdevtype = **(new NanUtf8String(args[2].As<String>()));
+
+  return (obj->con_->clone(
+    obj->con_, 
+    newname,
+    NULL,
+    (int64_t)*flags,
+    bdevtype,
+    NULL,
+    0,
+    NULL
+  ) != NULL) ? NanTrue() : NanFalse();
+
+}
+
+NAN_METHOD(Container::ConsoleGetFd) {
+  NanScope();
+
+  int masterfd;
+
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  int ttynum = (int64_t)*(args[0].As<Integer>());
+
+  if(obj->con_->console_getfd(obj->con_, &ttynum, &masterfd) < 0) {
+    NanReturnValue(NanNew(-1));
+  }
+  NanReturnValue(NanNew(masterfd));
+}
+
+NAN_METHOD(Container::Console) {
+  NanScope();
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  int ttynum = (int64_t)*(args[0].As<Integer>());
+  int stdinfd = (int64_t)*(args[1].As<Integer>());
+  int stdoutfd = (int64_t)*(args[2].As<Integer>());
+  int stderrfd = (int64_t)*(args[3].As<Integer>());
+  int escape = (int64_t)*(args[4].As<Integer>());
+
+  if(obj->con_->console(obj->con_, ttynum, stdinfd, stdoutfd, stderrfd, escape) == 0) {
+    NanReturnValue(NanTrue());
+  }
+
+  NanReturnValue(NanFalse());
+}
+
+NAN_METHOD(Container::GetInterfaces) {
+  NanScope();
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+
+  char** interfaces = obj->con_->get_interfaces(obj->con_);
+  if(interfaces == NULL) {
+    NanReturnUndefined();
+  }
+
+  Handle<Array> arr = NanNew<Array>();
+  int i = 0;
+  while(interfaces++ != '\0'){
+    arr->Set(i, NanNew<String>(*interfaces));
+  }
+
+  NanReturnValue(arr);
+}
+
+NAN_METHOD(Container::GetIps) {
+  NanScope();
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  char * interface = **(new NanUtf8String(args[0].As<String>()));
+  char * family = **(new NanUtf8String(args[1].As<String>()));
+  int linkscope = (int64_t)*(args[2].As<Integer>());
+
+  char** ips = obj->con_->get_ips(obj->con_, interface, family, linkscope);
+  if(ips == NULL) {
+    NanReturnUndefined();
+  }
+
+  Handle<Array> arr = NanNew<Array>();
+  int i = 0;
+  while(ips++ != '\0'){
+    arr->Set(i, NanNew<String>(*ips));
+  }
+
+  NanReturnValue(arr);
+}
+
+NAN_METHOD(Container::MayControl){
+  NanScope();
+  return Con()->may_control(Con()) ? NanTrue() : NanFalse();
+}
+
+NAN_METHOD(Container::Snapshot){
+  NanScope();
+  NanReturnValue(NanNew<Integer>(Con()->snapshot(Con(), NULL)));
+}
+
+// XXX - do stuff with ret rather than just return an int
+NAN_METHOD(Container::SnapshotList) {
+  NanScope();
+  struct lxc_snapshot **ret = {};
+  Handle<Object> hash = NanNew<Object>();
+  int rval = Con()->snapshot_list(Con(), ret);
+  if(rval < 0){
+    NanReturnUndefined();
+  }
+  while(ret++ != '\0'){    
+    Handle<Object> snap = NanNew<Object>();
+    snap->Set(NanNew("name"), NanNew((**ret).name));
+    snap->Set(NanNew("comment_pathname"), NanNew((**ret).comment_pathname));
+    snap->Set(NanNew("timestamp"), NanNew((**ret).timestamp));
+    snap->Set(NanNew("lxcpath"), NanNew((**ret).lxcpath));
+
+    hash->Set(NanNew((**ret).name), snap);
+  }
+  NanReturnValue(hash);
+}
+
+NAN_METHOD(Container::SnapshotRestore) {
+  NanScope();
+  char * snapname = **(new NanUtf8String(args[0].As<String>()));
+  char * newname = **(new NanUtf8String(args[1].As<String>()));
+  return Con()->snapshot_restore(Con(), snapname, newname) ? NanTrue() : NanFalse();
+
+}
+
+NAN_METHOD(Container::SnapshotDestroy) {
+  NanScope();
+  char * snapname = **(new NanUtf8String(args[0].As<String>()));
+  return Con()->snapshot_destroy(Con(), snapname) ? NanTrue() : NanFalse();
+}
+
+NAN_METHOD(Container::AddDeviceNode) {
+  NanScope();
+  char * src_path = **(new NanUtf8String(args[0].As<String>()));
+  char * dest_path = **(new NanUtf8String(args[1].As<String>()));
+  return Con()->add_device_node(Con(), src_path, dest_path) ? NanTrue() : NanFalse();
+}
+
+NAN_METHOD(Container::RemoveDeviceNode) {
+  NanScope();
+  char * src_path = **(new NanUtf8String(args[0].As<String>()));
+  char * dest_path = **(new NanUtf8String(args[1].As<String>()));
+  return Con()->remove_device_node(Con(), src_path, dest_path) ? NanTrue() : NanFalse();
+}
+
+NAN_METHOD(Container::Rename) {
+  NanScope();
+  char * newname = **(new NanUtf8String(args[0].As<String>()));
+  return Con()->rename(Con(), newname) ? NanTrue() : NanFalse();
+}
+
 
 NODE_MODULE(lxc, Container::Init)
