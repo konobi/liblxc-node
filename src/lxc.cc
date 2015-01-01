@@ -32,8 +32,8 @@ void Container::Init(Handle<Object> target) {
   target->Set(NanNew("Container"), tpl->GetFunction());
 }
 
-Handle<Value> Container::New(const Arguments& args) {
-	HandleScope scope;
+NAN_METHOD(Container::New) {
+	NanScope();
 	static v8::String *cname;
 	static v8::String *configpath;
 
@@ -49,6 +49,7 @@ Handle<Value> Container::New(const Arguments& args) {
 		
 		if(obj->con_ == NULL) {
   		  NanThrowError("Unable to get container");
+		  NanReturnUndefined();
 		}
 
 		obj->Wrap(args.This());
@@ -58,71 +59,78 @@ Handle<Value> Container::New(const Arguments& args) {
 	}
 }
 
-Handle<Value> Container::Defined(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::Defined) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return obj->con_->is_defined(obj->con_) ? NanTrue() : NanFalse();
 }
 
-Handle<Value> Container::State(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::State) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return NanNew(std::string(obj->con_->state(obj->con_)));
 }
 
-Handle<Value> Container::Running(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::Running) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return obj->con_->is_running(obj->con_) ? NanTrue() : NanFalse();
 }
 
-Handle<Value> Container::Freeze(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::Freeze) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return obj->con_->freeze(obj->con_) ? NanTrue() : NanFalse();
 }
 
-Handle<Value> Container::UnFreeze(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::UnFreeze) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return obj->con_->unfreeze(obj->con_) ? NanTrue() : NanFalse();
 }
 
-Handle<Value> Container::InitPid(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::InitPid) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   NanReturnValue(NanNew<Number>(obj->con_->init_pid(obj->con_)));
 }
 
-Handle<Value> Container::WantDaemonize(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::WantDaemonize) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return obj->con_->want_daemonize(obj->con_, args[0]->ToBoolean()->Value()) ? NanTrue() : NanFalse();
 }
 
-Handle<Value> Container::WantCloseAllFds(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::WantCloseAllFds) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return obj->con_->want_close_all_fds(obj->con_, args[0]->ToBoolean()->Value()) ? NanTrue() : NanFalse();
 }
 
-Handle<Value> Container::Create(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::Create) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
 
-  static v8::String template_str = args[0].As<String>();
+  Handle<Value> target = args[0];
+  Handle<Value> bdevtype = args[1];
+  Handle<Value> flags = args[2];
+
+  Handle<String> template_str = target.As<String>();
+  Handle<String> bdevtype_str = bdevtype.As<String>();
+  Handle<Integer> flags_num = flags.As<Integer>();
+
   return obj->con_->create(
     obj->con_,
     template_str,
-     // BDEVTYPE
-    NULL
-    //!!(FLAGS & LXC_CREATE_QUIET)
-    // ARGV
+    bdevtype_str,
+    NULL,
+    !!((int64_t)*flags_num & LXC_CREATE_QUIET),
+    ARGV
   ) ? NanTrue() : NanFalse();
 }
 
-Handle<Value> Container::Start(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(Container::Start) {
+  NanScope();
   Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
   return obj->con_->start(
       obj->con_,
