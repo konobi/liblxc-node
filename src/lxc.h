@@ -18,7 +18,7 @@ class Container : public node::ObjectWrap {
   private:
     struct lxc_container *con_;
     static Persistent<Function> constructor;
- 
+
     Container();
     ~Container();
     static NAN_METHOD(New);
@@ -63,7 +63,7 @@ class Container : public node::ObjectWrap {
     static NAN_METHOD(AddDeviceNode);
     static NAN_METHOD(RemoveDeviceNode);
     static NAN_METHOD(Rename);
- 
+
   public:
     static void Init(Handle<Object> target, Handle<Object> module);
 };
