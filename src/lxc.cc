@@ -69,30 +69,30 @@ void Container::Init(Handle<Object> target, Handle<Object> module) {
 }
 
 NAN_METHOD(Container::New) {
-	NanScope();
-	static v8::String *cname;
-	static v8::String *configpath;
+  NanScope();
+  static v8::String *cname;
+  static v8::String *configpath;
 
-	if (args.IsConstructCall()) {
-		cname = *args[0].As<String>();
-		configpath = *args[1].As<String>();
-		Container* obj = new Container();
+  if (args.IsConstructCall()) {
+    cname = *args[0].As<String>();
+    configpath = *args[1].As<String>();
+    Container* obj = new Container();
 
-		obj->con_ = lxc_container_new(
-			(const char*)cname,
-			(const char*)configpath
-		);
-		
-		if(obj->con_ == NULL) {
-  		  NanThrowError("Unable to get container");
-		  NanReturnUndefined();
-		}
+    obj->con_ = lxc_container_new(
+      (const char*)cname,
+      (const char*)configpath
+    );
 
-		obj->Wrap(args.This());
-		return args.This();
-	} else {
-		NanReturnUndefined();
-	}
+    if(obj->con_ == NULL) {
+        NanThrowError("Unable to get container");
+      NanReturnUndefined();
+    }
+
+    obj->Wrap(args.This());
+    return args.This();
+  } else {
+    NanReturnUndefined();
+  }
 }
 
 NAN_METHOD(Container::Defined) {
@@ -220,15 +220,15 @@ NAN_METHOD(Container::GetConfigItem) {
   Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   struct lxc_container *c = obj->con_;
   char * key = **(new NanUtf8String(args[0].As<String>()));
-	int len = c->get_config_item(c, key, NULL, 0);
-	if (len <= 0) {
-		NanReturnNull();
-	}
+  int len = c->get_config_item(c, key, NULL, 0);
+  if (len <= 0) {
+    NanReturnNull();
+  }
 
-	char* value = (char*)malloc(sizeof(char)*len + 1);
-	if (c->get_config_item(c, key, value, len + 1) != len) {
-		NanReturnNull();
-	}
+  char* value = (char*)malloc(sizeof(char)*len + 1);
+  if (c->get_config_item(c, key, value, len + 1) != len) {
+    NanReturnNull();
+  }
   // XXX - need to free here!
   NanReturnValue(NanNew(value));
 }
@@ -271,15 +271,15 @@ NAN_METHOD(Container::GetKeys) {
   Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   struct lxc_container *c = obj->con_;
   char * key = **(new NanUtf8String(args[0].As<String>()));
-	int len = c->get_keys(c, key, NULL, 0);
-	if (len <= 0) {
-		NanReturnNull();
-	}
+  int len = c->get_keys(c, key, NULL, 0);
+  if (len <= 0) {
+    NanReturnNull();
+  }
 
-	char* value = (char*)malloc(sizeof(char)*len + 1);
-	if (c->get_keys(c, key, value, len + 1) != len) {
-		NanReturnNull();
-	}
+  char* value = (char*)malloc(sizeof(char)*len + 1);
+  if (c->get_keys(c, key, value, len + 1) != len) {
+    NanReturnNull();
+  }
   // XXX - need to free here!
   NanReturnValue(NanNew(value));
 }
@@ -289,15 +289,15 @@ NAN_METHOD(Container::GetCGroupItem) {
   Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   struct lxc_container *c = obj->con_;
   char * key = **(new NanUtf8String(args[0].As<String>()));
-	int len = c->get_cgroup_item(c, key, NULL, 0);
-	if (len <= 0) {
-		NanReturnNull();
-	}
+  int len = c->get_cgroup_item(c, key, NULL, 0);
+  if (len <= 0) {
+    NanReturnNull();
+  }
 
-	char* value = (char*)malloc(sizeof(char)*len + 1);
-	if (c->get_cgroup_item(c, key, value, len + 1) != len) {
-		NanReturnNull();
-	}
+  char* value = (char*)malloc(sizeof(char)*len + 1);
+  if (c->get_cgroup_item(c, key, value, len + 1) != len) {
+    NanReturnNull();
+  }
   // XXX - need to free here!
   NanReturnValue(NanNew(value));
 }
