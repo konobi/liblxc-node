@@ -69,83 +69,83 @@ void Container::Init(Handle<Object> target, Handle<Object> module) {
 }
 
 NAN_METHOD(Container::New) {
-	NanScope();
-	static v8::String *cname;
-	static v8::String *configpath;
+  NanScope();
+  static v8::String *cname;
+  static v8::String *configpath;
 
-	if (args.IsConstructCall()) {
-		cname = *args[0].As<String>();
-		configpath = *args[1].As<String>();
-		Container* obj = new Container();
+  if (args.IsConstructCall()) {
+    cname = *args[0].As<String>();
+    configpath = *args[1].As<String>();
+    Container* obj = new Container();
 
-		obj->con_ = lxc_container_new(
-			(const char*)cname,
-			(const char*)configpath
-		);
-		
-		if(obj->con_ == NULL) {
-  		  NanThrowError("Unable to get container");
-		  NanReturnUndefined();
-		}
+    obj->con_ = lxc_container_new(
+      (const char*)cname,
+      (const char*)configpath
+    );
 
-		obj->Wrap(args.This());
-		return args.This();
-	} else {
-		NanReturnUndefined();
-	}
+    if(obj->con_ == NULL) {
+        NanThrowError("Unable to get container");
+      NanReturnUndefined();
+    }
+
+    obj->Wrap(args.This());
+    return args.This();
+  } else {
+    NanReturnUndefined();
+  }
 }
 
 NAN_METHOD(Container::Defined) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->is_defined(obj->con_) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::State) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return NanNew(std::string(obj->con_->state(obj->con_)));
 }
 
 NAN_METHOD(Container::Running) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->is_running(obj->con_) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::Freeze) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->freeze(obj->con_) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::UnFreeze) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->unfreeze(obj->con_) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::InitPid) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   NanReturnValue(NanNew<Number>(obj->con_->init_pid(obj->con_)));
 }
 
 NAN_METHOD(Container::WantDaemonize) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->want_daemonize(obj->con_, args[0]->ToBoolean()->Value()) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::WantCloseAllFds) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->want_close_all_fds(obj->con_, args[0]->ToBoolean()->Value()) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::Create) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
 
   Handle<String> template_str = args[0].As<String>();
   Handle<String> bdevtype_str = args[1].As<String>();
@@ -165,7 +165,7 @@ NAN_METHOD(Container::Create) {
 
 NAN_METHOD(Container::Start) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * extra[16];
   return obj->con_->start(
       obj->con_,
@@ -176,19 +176,19 @@ NAN_METHOD(Container::Start) {
 
 NAN_METHOD(Container::Stop) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->stop(obj->con_) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::Reboot) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->reboot(obj->con_) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::Shutdown) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   Handle<Integer> timeout = args[0].As<Integer>();
   return obj->con_->shutdown(obj->con_, (int64_t)*timeout) ? NanTrue() : NanFalse();
 }
@@ -201,13 +201,13 @@ NAN_METHOD(Container::ConfigFileName) {
 
 NAN_METHOD(Container::Destroy) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   return obj->con_->destroy(obj->con_) ? NanTrue() : NanFalse();
 }
 
 NAN_METHOD(Container::Wait) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
 
   Handle<String> state = args[0].As<String>();
   Handle<Integer> timeout = args[1].As<Integer>();
@@ -220,22 +220,22 @@ NAN_METHOD(Container::GetConfigItem) {
   Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   struct lxc_container *c = obj->con_;
   char * key = **(new NanUtf8String(args[0].As<String>()));
-	int len = c->get_config_item(c, key, NULL, 0);
-	if (len <= 0) {
-		NanReturnNull();
-	}
+  int len = c->get_config_item(c, key, NULL, 0);
+  if (len <= 0) {
+    NanReturnNull();
+  }
 
-	char* value = (char*)malloc(sizeof(char)*len + 1);
-	if (c->get_config_item(c, key, value, len + 1) != len) {
-		NanReturnNull();
-	}
+  char* value = (char*)malloc(sizeof(char)*len + 1);
+  if (c->get_config_item(c, key, value, len + 1) != len) {
+    NanReturnNull();
+  }
   // XXX - need to free here!
   NanReturnValue(NanNew(value));
 }
 
 NAN_METHOD(Container::SetConfigItem) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
 
   char * key = **(new NanUtf8String(args[0].As<String>()));
   char * value = **(new NanUtf8String(args[1].As<String>()));
@@ -252,7 +252,7 @@ NAN_METHOD(Container::ClearConfig) {
 
 NAN_METHOD(Container::ClearConfigItem) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * key = **(new NanUtf8String(args[0].As<String>()));
 
   return obj->con_->clear_config_item(obj->con_, key) ? NanTrue() : NanFalse();
@@ -260,7 +260,7 @@ NAN_METHOD(Container::ClearConfigItem) {
 
 NAN_METHOD(Container::GetRunningConfigItem) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * key = **(new NanUtf8String(args[0].As<String>()));
 
   NanReturnValue(NanNew(obj->con_->clear_config_item(obj->con_, key)));
@@ -271,15 +271,15 @@ NAN_METHOD(Container::GetKeys) {
   Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   struct lxc_container *c = obj->con_;
   char * key = **(new NanUtf8String(args[0].As<String>()));
-	int len = c->get_keys(c, key, NULL, 0);
-	if (len <= 0) {
-		NanReturnNull();
-	}
+  int len = c->get_keys(c, key, NULL, 0);
+  if (len <= 0) {
+    NanReturnNull();
+  }
 
-	char* value = (char*)malloc(sizeof(char)*len + 1);
-	if (c->get_keys(c, key, value, len + 1) != len) {
-		NanReturnNull();
-	}
+  char* value = (char*)malloc(sizeof(char)*len + 1);
+  if (c->get_keys(c, key, value, len + 1) != len) {
+    NanReturnNull();
+  }
   // XXX - need to free here!
   NanReturnValue(NanNew(value));
 }
@@ -289,22 +289,22 @@ NAN_METHOD(Container::GetCGroupItem) {
   Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   struct lxc_container *c = obj->con_;
   char * key = **(new NanUtf8String(args[0].As<String>()));
-	int len = c->get_cgroup_item(c, key, NULL, 0);
-	if (len <= 0) {
-		NanReturnNull();
-	}
+  int len = c->get_cgroup_item(c, key, NULL, 0);
+  if (len <= 0) {
+    NanReturnNull();
+  }
 
-	char* value = (char*)malloc(sizeof(char)*len + 1);
-	if (c->get_cgroup_item(c, key, value, len + 1) != len) {
-		NanReturnNull();
-	}
+  char* value = (char*)malloc(sizeof(char)*len + 1);
+  if (c->get_cgroup_item(c, key, value, len + 1) != len) {
+    NanReturnNull();
+  }
   // XXX - need to free here!
   NanReturnValue(NanNew(value));
 }
 
 NAN_METHOD(Container::SetCGroupItem) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * key = **(new NanUtf8String(args[0].As<String>()));
   char * value = **(new NanUtf8String(args[1].As<String>()));
 
@@ -319,7 +319,7 @@ NAN_METHOD(Container::GetConfigPath) {
 
 NAN_METHOD(Container::SetConfigPath) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * path = **(new NanUtf8String(args[0].As<String>()));
 
   return obj->con_->set_config_path(obj->con_, path) ? NanTrue() : NanFalse();
@@ -327,7 +327,7 @@ NAN_METHOD(Container::SetConfigPath) {
 
 NAN_METHOD(Container::LoadConfig) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * path = **(new NanUtf8String(args[0].As<String>()));
 
   return obj->con_->load_config(obj->con_, path) ? NanTrue() : NanFalse();
@@ -335,7 +335,7 @@ NAN_METHOD(Container::LoadConfig) {
 
 NAN_METHOD(Container::SaveConfig) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * path = **(new NanUtf8String(args[0].As<String>()));
 
   return obj->con_->save_config(obj->con_, path) ? NanTrue() : NanFalse();
@@ -343,13 +343,13 @@ NAN_METHOD(Container::SaveConfig) {
 
 NAN_METHOD(Container::Clone) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * newname = **(new NanUtf8String(args[0].As<String>()));
   Handle<Integer> flags = args[1].As<Integer>();
   char * bdevtype = **(new NanUtf8String(args[2].As<String>()));
 
   return (obj->con_->clone(
-    obj->con_, 
+    obj->con_,
     newname,
     NULL,
     (int64_t)*flags,
@@ -366,7 +366,7 @@ NAN_METHOD(Container::ConsoleGetFd) {
 
   int masterfd;
 
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   int ttynum = (int64_t)*(args[0].As<Integer>());
 
   if(obj->con_->console_getfd(obj->con_, &ttynum, &masterfd) < 0) {
@@ -377,7 +377,7 @@ NAN_METHOD(Container::ConsoleGetFd) {
 
 NAN_METHOD(Container::Console) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   int ttynum = (int64_t)*(args[0].As<Integer>());
   int stdinfd = (int64_t)*(args[1].As<Integer>());
   int stdoutfd = (int64_t)*(args[2].As<Integer>());
@@ -393,7 +393,7 @@ NAN_METHOD(Container::Console) {
 
 NAN_METHOD(Container::GetInterfaces) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
 
   char** interfaces = obj->con_->get_interfaces(obj->con_);
   if(interfaces == NULL) {
@@ -411,7 +411,7 @@ NAN_METHOD(Container::GetInterfaces) {
 
 NAN_METHOD(Container::GetIps) {
   NanScope();
-  Container* obj = ObjectWrap::Unwrap<Container>(args.This()); 
+  Container* obj = ObjectWrap::Unwrap<Container>(args.This());
   char * interface = **(new NanUtf8String(args[0].As<String>()));
   char * family = **(new NanUtf8String(args[1].As<String>()));
   int linkscope = (int64_t)*(args[2].As<Integer>());
@@ -449,7 +449,7 @@ NAN_METHOD(Container::SnapshotList) {
   if(rval < 0){
     NanReturnUndefined();
   }
-  while(ret++ != '\0'){    
+  while(ret++ != '\0'){
     Handle<Object> snap = NanNew<Object>();
     snap->Set(NanNew("name"), NanNew((**ret).name));
     snap->Set(NanNew("comment_pathname"), NanNew((**ret).comment_pathname));
