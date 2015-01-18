@@ -68,31 +68,73 @@ void Container::Init(Handle<Object> target, Handle<Object> module) {
   module->Set(NanNew("exports"), tpl->GetFunction());
 }
 
+struct container_new_baton {
+    uv_work_t req;
+    Container *container;
+    Handle<Function> callback;
+    static v8::String *cname;
+    static v8::String *configpath;
+    Handle<Value> self;
+}
+
+inline void run_container_new(uv_work_t* req) {
+  container_new_baton* baton = static_cast<container_new_baton*>(req->data);
+
+  baton->container->_con = lxc_container_new(
+    (const char*)baton->cname,
+    (const char*)baton->config_path
+  );
+}
+
+inline void run_container_new_cb(uv_work_t* req) {
+  container_new_baton* baton = static_cast<container_new_baton*>(req->data);
+
+  int param_count = 1;
+  Handle<Value> argv[1] = (baton->container->_con == NULL) 
+      ? Exception::Error(String::New("Unable to gain container handle"))
+      : NanUndefined();
+
+  if(baton->container->_con != NULL) {
+    Handle<Value> argv[2] = baton->container->Wrap(baton->self);
+    param_count = 2;
+  }
+  
+  node::MakeCallback(
+    Context::GetCurrent()->Global(),
+    baton->callback,
+    param_count,
+    argv
+  );
+
+  baton->callback.Dispose();
+  baton->callback.Clear();
+  baton->self.Dispose();
+  baton->self.Clear();
+
+  free(baton);
+}
+
 NAN_METHOD(Container::New) {
   NanScope();
-  static v8::String *cname;
-  static v8::String *configpath;
 
+  assert(args[0]->IsFunction());
+  assert(args[1]->IsString());
+  assert(args[2]->IsString());
+ 
   if (args.IsConstructCall()) {
-    cname = *args[0].As<String>();
-    configpath = *args[1].As<String>();
     Container* obj = new Container();
 
-    obj->con_ = lxc_container_new(
-      (const char*)cname,
-      (const char*)configpath
-    );
-
-    if(obj->con_ == NULL) {
-        NanThrowError("Unable to get container");
-      NanReturnUndefined();
-    }
-
-    obj->Wrap(args.This());
-    return args.This();
-  } else {
-    NanReturnUndefined();
-  }
+    container_new_baton *baton = (container_new_baton*) malloc(sizeof(container_new_baton));
+    baton->req.data   = (void*) baton;
+    baton->container  = new Container();
+    baton->callback   = Persistent<Function>::New(args[0].As<Function>());
+    baton->cname      = *args[1].As<String>();
+    baton->configpath = *args[2].As<String>();
+    baton->self       = args.This();
+    
+    uv_queue_work(uv_default_loop(), &baton->req, run_container_new, run_container_new_cb); 
+  }    
+  NanReturnUndefined();
 }
 
 NAN_METHOD(Container::Defined) {
