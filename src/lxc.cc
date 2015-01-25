@@ -9,6 +9,15 @@ extern "C" {
 }
 #include "lxc.h"
 
+struct container_new_baton {
+    uv_work_t req;
+    Container *container;
+    Handle<Function> callback;
+    static v8::String *cname;
+    static v8::String *configpath;
+    Handle<Value> self;
+};
+
 Persistent<Function> Container::constructor;
 struct lxc_container Container::*con_;
 
@@ -68,35 +77,26 @@ void Container::Init(Handle<Object> target, Handle<Object> module) {
   module->Set(NanNew("exports"), tpl->GetFunction());
 }
 
-struct container_new_baton {
-    uv_work_t req;
-    Container *container;
-    Handle<Function> callback;
-    static v8::String *cname;
-    static v8::String *configpath;
-    Handle<Value> self;
-}
-
-inline void run_container_new(uv_work_t* req) {
+inline void Container::run_container_new(uv_work_t* req) {
   container_new_baton* baton = static_cast<container_new_baton*>(req->data);
 
-  baton->container->_con = lxc_container_new(
+  baton->container->con_ = lxc_container_new(
     (const char*)baton->cname,
-    (const char*)baton->config_path
+    (const char*)baton->configpath
   );
 }
 
-inline void run_container_new_cb(uv_work_t* req) {
+inline void Container::run_container_new_cb(uv_work_t* req, int status) {
   container_new_baton* baton = static_cast<container_new_baton*>(req->data);
 
   int param_count = 1;
-  Handle<Value> argv[1] = (baton->container->_con == NULL) 
+  Local<Value> argv[1] = { (baton->container->con_ == NULL) 
       ? Exception::Error(String::New("Unable to gain container handle"))
-      : NanUndefined();
+      : Local<Value>(NanUndefined()) };
 
-  if(baton->container->_con != NULL) {
-    Handle<Value> argv[2] = baton->container->Wrap(baton->self);
-    param_count = 2;
+  if(baton->container->con_ != NULL) {
+    Handle<Value> argv[2] = { baton->self };
+    param_count = 3;
   }
   
   node::MakeCallback(
@@ -106,9 +106,7 @@ inline void run_container_new_cb(uv_work_t* req) {
     argv
   );
 
-  baton->callback.Dispose();
   baton->callback.Clear();
-  baton->self.Dispose();
   baton->self.Clear();
 
   free(baton);
@@ -122,9 +120,8 @@ NAN_METHOD(Container::New) {
   assert(args[2]->IsString());
  
   if (args.IsConstructCall()) {
-    Container* obj = new Container();
 
-    container_new_baton *baton = (container_new_baton*) malloc(sizeof(container_new_baton));
+    container_new_baton *baton = new container_new_baton;
     baton->req.data   = (void*) baton;
     baton->container  = new Container();
     baton->callback   = Persistent<Function>::New(args[0].As<Function>());
@@ -132,7 +129,7 @@ NAN_METHOD(Container::New) {
     baton->configpath = *args[2].As<String>();
     baton->self       = args.This();
     
-    uv_queue_work(uv_default_loop(), &baton->req, run_container_new, run_container_new_cb); 
+    uv_queue_work(uv_default_loop(), &baton->req, Container::run_container_new, Container::run_container_new_cb); 
   }    
   NanReturnUndefined();
 }
@@ -485,7 +482,7 @@ NAN_METHOD(Container::Snapshot){
 // XXX - do stuff with ret rather than just return an int
 NAN_METHOD(Container::SnapshotList) {
   NanScope();
-  struct lxc_snapshot **ret = {};
+  struct lxc_snapshot **ret = NULL;
   Handle<Object> hash = NanNew<Object>();
   int rval = Con()->snapshot_list(Con(), ret);
   if(rval < 0){

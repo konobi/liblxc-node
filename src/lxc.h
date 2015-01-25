@@ -64,9 +64,13 @@ class Container : public node::ObjectWrap {
     static NAN_METHOD(RemoveDeviceNode);
     static NAN_METHOD(Rename);
 
+    static void run_container_new(uv_work_t* req);
+    static void run_container_new_cb(uv_work_t* req, int status);
   public:
     static void Init(Handle<Object> target, Handle<Object> module);
 };
+
+
 
 //int lxc_attach(struct lxc_container *c, bool clear_env) {
 //  int ret;
