@@ -1,7 +1,7 @@
 liblxc-node
 ===
 
-### Currently under development.
+### Currently unmaintained.
 
 <!-- Badges will go here -->
 
